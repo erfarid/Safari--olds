@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="safariolds" default="build-and-test" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+    <description>Builds, tests, and runs the project safariolds.</description>
+
+    <!-- Properties -->
+    <property name="src.dir" value="src"/>
+    <property name="test.dir" value="test"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="testclasses.dir" value="${build.dir}/test-classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="report.dir" value="${build.dir}/test-results"/>
+    <property name="coverage.dir" value="${build.dir}/coverage"/>
+    <property name="java.awt.headless" value="true"/>
+
+    <!-- Classpaths -->
+    <path id="classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="jacoco.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="jacocoant.jar"/>
+        </fileset>
+    </path>
+
+    <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+        <classpath refid="jacoco.classpath"/>
+    </taskdef>
+
+    <!-- Clean targets -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="clean-all" depends="clean">
+        <delete>
+            <fileset dir="${src.dir}" includes="**/*.class"/>
+            <fileset dir="${test.dir}" includes="**/*.class"/>
+        </delete>
+    </target>
+
+    <!-- Compile targets -->
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" debug="true">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <target name="compile-test" depends="compile">
+        <mkdir dir="${testclasses.dir}"/>
+        <javac srcdir="${test.dir}" destdir="${testclasses.dir}" includeantruntime="false" debug="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement path="${classes.dir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- Test target -->
+    <target name="test" depends="compile-test">
+        <mkdir dir="${report.dir}"/>
+        <mkdir dir="${coverage.dir}"/>
+        
+        <jacoco:coverage destfile="${coverage.dir}/jacoco.exec">
+            <junit printsummary="yes" haltonfailure="no" fork="true" forkmode="once">
+                <sysproperty key="java.awt.headless" value="true"/>
+                <classpath>
+                    <path refid="classpath"/>
+                    <path refid="jacoco.classpath"/>
+                    <pathelement path="${classes.dir}"/>
+                    <pathelement path="${testclasses.dir}"/>
+                </classpath>
+                <formatter type="xml"/>
+                <batchtest todir="${report.dir}">
+                    <fileset dir="${test.dir}">
+                        <include name="**/*Test.java"/>
+                        <exclude name="**/Abstract*.java"/>
+                    </fileset>
+                </batchtest>
+            </junit>
+        </jacoco:coverage>
+        
+        <jacoco:report>
+            <executiondata>
+                <file file="${coverage.dir}/jacoco.exec"/>
+            </executiondata>
+            <structure name="safariolds">
+                <classfiles>
+                    <fileset dir="${classes.dir}"/>
+                </classfiles>
+                <sourcefiles>
+                    <fileset dir="${src.dir}"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${coverage.dir}/html"/>
+            <csv destfile="${coverage.dir}/report.csv"/>
+            <xml destfile="${coverage.dir}/report.xml"/>
+        </jacoco:report>
+    </target>
+
+    <target name="build-and-test" depends="clean, test"/>
+</project>
