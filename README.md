@@ -1,4 +1,4 @@
-# Safari 
+# Safari olds
 
 Safari Olds is a Java Swing safari management game where the player builds a wildlife park, manages resources, places roads and habitat items, and protects animals from threats while growing the park's capital.
 
